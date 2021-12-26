@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "@tsconfig/create-react-app/tsconfig.json",
+  "compilerOptions": {
+    "target": "es6",
+    "baseUrl": "src",
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "strictNullChecks": true,
+    "incremental": true,
+    "types": ["@types/testing-library__jest-dom", "webpack-env"]
+  },
+  "include": ["src/**/*", "jest.config.ts"],
+  "exclude": ["node_modules", "build", "coverage", "public"]
+}
