@@ -1,3 +1,14 @@
+If you are junior I think this guide will help you understand how to create react app from scratch and dive deep each item and what does it mean. Don't use it if you don't know how to it runs, how to it operates. If have any problem and issues you will lost control and break something
+
+#### Overall this guide below:
+1. Create React App - [Link](https://github.com/facebook/create-react-app) : Set up a modern react web app by running one command.
+2. TypeScript - [Link](https://www.typescriptlang.org/) : TypeScript is a strongly typed programming language that builds on JavaScript, giving you better tooling at any scale.
+3. ESLint - [Link](https://eslint.org/docs/user-guide/getting-started) : Find and fix problems in your JS,TS code.
+4. Prettier - [Link](https://prettier.io/) : code formatter integrated with eslint
+5. Unit Test (Jest , React Testing Library, coverage) 
+6. Style [SCSS](https://sass-lang.com/) & Stylelint Link](https://stylelint.io/)
+7. Git hooks with [Husky](https://github.com/typicode/husky) and [Lint-staged](https://github.com/okonet/lint-staged)
+
 ### Step 1: Initialize Your code base with typescript
 
 We use Create React App to initialize a new project
@@ -5,11 +16,6 @@ https://create-react-app.dev/docs/getting-started#creating-a-typescript-app
 
 ```sh
 npx create-react-app my-app --template typescript
-```
-
-Or
-
-```sh
 yarn create-react-app my-app --template typescript
 ```
 
@@ -105,8 +111,8 @@ Write your own rules that work alongside ESLint's built-in rules. You can custom
 Prettier is an opinionated code formatter which is compatible with most of the languages. It saves a lot of time. It quickly indents our code on save (depends on VSCode/editor settings).
 
 ```sh
-npm install eslint --save-dev
-yarn add eslint --dev
+npm install prettier eslint --save-dev
+yarn add prettier eslint --dev
 
 npx eslint --init
 yarn run eslint --init
@@ -400,7 +406,7 @@ Add new script `style-lint` to `package.json` scripts.
 "style-lint": "stylelint --config=.stylelintrc.json \"src/**/*.scss\" --formatter verbose",
 ```
 
-#### Step 6: Set Up Git hooks with husky and lint-staged
+### Step 6: Set Up Git hooks with husky and lint-staged
 
 Helpful npm Packages
 We will rely on a couple of npm packages that will help us set up git hooks.
@@ -485,46 +491,3 @@ Content of `pre-commit` file
 yarn lint-staged
 ```
 
-## Available Scripts
-
-In the project directory, you can run:
-
-### `npm start`
-
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
-
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
-
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-npm install react-app-rewired stylelint-webpack-plugin --save-dev
