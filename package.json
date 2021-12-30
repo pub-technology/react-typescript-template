@@ -10,7 +10,7 @@
     "prepare": "husky install",
     "coverage": "npm test -- --coverage --watchAll=false",
     "style-lint": "stylelint --config=.stylelintrc.json \"src/**/*.scss\" --formatter verbose",
-    "lint": "eslint --max-warnings=0 --fix --ext .ts,.tsx .",
+    "lint": "eslint --max-warnings=0 --ext .ts,.tsx .",
     "format": "prettier --write 'src/**/*.{ts,tsx}' --config ./.prettierrc"
   },
   "dependencies": {

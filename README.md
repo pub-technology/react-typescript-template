@@ -1,493 +1,246 @@
-If you are junior I think this guide will help you understand how to create react app from scratch and dive deep each item and what does it mean. Don't use it if you don't know how to it runs, how to it operates. If have any problem and issues you will lost control and break something
+Add Redux-Saga in your React TypeScript Project
 
-#### Overall this guide below:
-1. Create React App - [Link](https://github.com/facebook/create-react-app) : Set up a modern react web app by running one command.
-2. TypeScript - [Link](https://www.typescriptlang.org/) : TypeScript is a strongly typed programming language that builds on JavaScript, giving you better tooling at any scale.
-3. ESLint - [Link](https://eslint.org/docs/user-guide/getting-started) : Find and fix problems in your JS,TS code.
-4. Prettier - [Link](https://prettier.io/) : code formatter integrated with eslint
-5. Unit Test (Jest , React Testing Library, coverage) 
-6. Style [SCSS](https://sass-lang.com/) & Stylelint Link](https://stylelint.io/)
-7. Git hooks with [Husky](https://github.com/typicode/husky) and [Lint-staged](https://github.com/okonet/lint-staged)
+In this article, I will guide you how to implement it to personal project so what is redux-saga?
 
-### Step 1: Initialize Your code base with typescript
+https://miro.medium.com/max/630/1*QERgzuzphdQz4e0fNs1CFQ.gif
 
-We use Create React App to initialize a new project
-https://create-react-app.dev/docs/getting-started#creating-a-typescript-app
+> Redux-Saga is a library that aims to make application side effects (i.e. asynchronous things like data fetching and impure things like accessing the browser cache) easier to manage, more efficient to execute, easy to test, and better at handling failures.
 
-```sh
-npx create-react-app my-app --template typescript
-yarn create-react-app my-app --template typescript
-```
+> Sagas are “they are like daemon tasks that run in the background and choose their own logic of progression” — Yassine Elouafi creator of redux-saga.
 
-### Step 2: Update Typescript configuration
+Before you go to understand what is Redux-saga, the word you must know is [Generator ES6](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function*)
 
-At the root folder the create-react-app script will generate a file `tsconfig.json`
-You can adjust the ts config base on your team refer to this link detail about tsconfig option : https://www.typescriptlang.org/tsconfig
+- A `generator` is a function that can stop midway and then continue from where it stopped. In short, a generator appears to be a function, but it behaves like an iterator.
+  `Iterators` are an implementation of `Iterable objects` such as maps, arrays and strings which enables us to iterate over them using `next()`. They have a wide variety of use cases across Generators, Observables and Spread operators.
 
-Suggestion : We should use the default configuration recommended by typescript
-https://github.com/tsconfig/bases#create-react-app-tsconfigjson
+#### Articles on Generators
+https://redux-saga.js.org/docs/ExternalResources/#articles-on-generators
+#### Declare a effect
+`Effects`: Invoke some asynchronous function, dispatch an action to the store, etc.
+> To create Effects, you use the functions provided by the library in the redux-saga/effects package.
+Sagas can yield Effects in multiple forms. The easiest way is to yield a Promise.
+> 
+E.g 
+- Effect -> call the function fetch with `./products` as argument
+- The redux-saga middleware takes care of executing the function call and resuming the generator with the resolved response.
+```js
+import { call } from 'redux-saga/effects'
 
-```sh
-npm install --save-dev @tsconfig/create-react-app
-yarn add --dev @tsconfig/create-react-app
-```
-
-Add to your tsconfig.json:
-
-```json
-"extends": "@tsconfig/create-react-app/tsconfig.json"
-```
-
-The default compilerOptions `12/2021`
-
-```json5
-"compilerOptions": {
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "module": "esnext",
-    "target": "es5",
-    "allowJs": true,
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "isolatedModules": true,
-    "jsx": "react-jsx",
-    "moduleResolution": "node",
-    "noEmit": true,
-    "noFallthroughCasesInSwitch": true,
-    "resolveJsonModule": true,
-    "skipLibCheck": true,
-    "strict": true
+function* fetchProducts() {
+  const products = yield call(Api.fetch, '/products')
+  // ...
 }
 ```
-
-However, You can override or add more config as below
-
-```json
-{
-  "extends": "@tsconfig/create-react-app/tsconfig.json",
-  "compilerOptions": {
-    "target": "es6",
-    "baseUrl": "src",
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "incremental": true
-  }
-}
+call also supports invoking object methods, you can provide a this context to the invoked functions using the following form:
+```js
+yield call([obj, obj.method], arg1, arg2, ...) // as if we did obj.method(arg1, arg2 ...)
+apply is an alias for the method invocation form
 ```
-
-#### More important options of note:
-
-| Option                           | Value                             | Note                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| :------------------------------- | :-------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| target                           | es6                               | Modern browsers support all ES6 features, so ES6 is a good choice. You might choose to set a lower target if your code is deployed to older environments, or a higher target if your code is guaranteed to run in newer environments.                                                                                                                                                                                                                                                                                                                                                                            |
-| lib                              | ["dom", "dom.iterable", "esnext"] | TypeScript includes a default set of type definitions for built-in JS APIs (like Math), as well as type definitions for things found in browser environments (like document). TypeScript also includes APIs for newer JS features matching the target you specify; for example the definition for Map is available if target is ES6 or newer..<br> Example React need manipulate with DOM so we will include 2 libs "dom" vs "dom.iterable" and we need use some api of es6 like MAP, SET, etc we add "esnext" and it load library necessary for us refer: https://github.com/microsoft/TypeScript/tree/main/lib |
-| module                           | esnext                            | Modules are executed within their own scope, not in the global scope; this means that variables, functions, classes, etc. declared in a module are not visible outside the module unless they are explicitly exported using one of the export forms. Conversely, to consume a variable, function, class, interface, etc. exported from a different module, it has to be imported using one of the import forms.<br> With module is esnext, es6, es2020 we can use import & export keywords<br> Module is CommonJS ( for node project ) we must use require keyword                                               |
-| allowJs                          | true                              | Allow JavaScript files to be imported inside your project, instead of just .ts and .tsx files.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| allowSyntheticDefaultImports     | true                              | Allow Synthetic Default Imports it allows you to write an import like `import React from "react"` instead of `import * as React from "react"` When the module does not explicitly specify a default export.                                                                                                                                                                                                                                                                                                                                                                                                      |
-| esModuleInterop                  | true                              | Allow Synthetic Default Imports it allows you to write an import like `import React from "react"` instead of `import * as React from "react"` When the module does not explicitly specify a default export.                                                                                                                                                                                                                                                                                                                                                                                                      |
-| forceConsistentCasingInFileNames | true                              | TypeScript follows the case sensitivity rules of the file system it’s running on. This can be problematic if some developers are working in a case-sensitive file system and others aren’t. If a file attempts to import fileManager.ts by specifying ./FileManager.ts the file will be found in a case-insensitive file system, but not on a case-sensitive file system.                                                                                                                                                                                                                                        |
-| jsx                              | react-jsx                         | Controls how JSX constructs are emitted in JavaScript files. This only affects output of JS files that started in .tsx files. <br>`react`: Emit .js files with JSX changed to the equivalent `React.createElement calls`<br>`react-jsx`: Emit .js files with the JSX changed to `_jsx` calls                                                                                                                                                                                                                                                                                                                     |
-| moduleResolution                 | node                              | Specify the module resolution strategy: <br>`node` for Node.js’ CommonJS implementation<br>`node12` or `nodenext`'` for Node.js’ ECMAScript Module Support from TypeScript 4.5 onwards                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| noFallthroughCasesInSwitch       | true                              | Report errors for fallthrough cases in switch statements. Ensures that any non-empty case inside a switch statement includes either break or return. This means you won’t accidentally ship a case fallthrough bug.                                                                                                                                                                                                                                                                                                                                                                                              |
-| resolveJsonModule                | true                              | Allows importing modules with a ‘.json’ extension, which is a common practice in node projects. This includes generating a type for the import based on the static JSON shape.                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| skipLibCheck                     | true                              | Skip type checking of default library declaration files.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| strict                           | true                              | The strict flag enables a wide range of type checking behavior that results in stronger guarantees of program correctness. Turning this on is equivalent to enabling all of the strict mode family options, which are outlined below. You can then turn off individual strict mode family checks as needed The rules are: `noImplicitAny` `noImplicitThis` `strictNullChecks` `strictPropertyInitialization` `strictBindCallApply` `strictFunctionTypes.`                                                                                                                                                        |
-| baseUrl                          | src                               | Lets you set a base directory to resolve non-absolute module names. You can define a root folder where you can do absolute file resolution. E.g. your folder (src/components/Text) you can use absolute path `import Text from "components/Text"`;                                                                                                                                                                                                                                                                                                                                                               |
-| noUnusedLocals                   | true                              | Report errors on unused local variables.;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| noUnusedParameters               | true                              | Report errors on unused parameters in functions.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| types                            | ...                               | By default all visible `”@types”` packages are included in your compilation. Packages in `node_modules/@types` of any enclosing folder are considered visible. For example, that means packages within `./node_modules/@types/` and so on. <br>If types is specified, only packages listed will be included in the `global scope`                                                                                                                                                                                                                                                                                |
-| include                          | ...                               | Specifies an array of filenames or patterns to include in the program. These filenames are resolved relative to the directory containing the tsconfig.json file.                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| exclude                          | ...                               | Specifies an array of filenames or patterns that should be skipped when resolving include.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-
-### Step 3: Setup linter for code quality
-
-#### What is ESLint?
-
-ESLint statically analyses our code and find the problems. It is present in most of the editors.ESLint fixes are syntax-aware so you won't experience errors introduced by traditional find-and-replace algorithms.
-Write your own rules that work alongside ESLint's built-in rules. You can customise ESLint to work exactly the way you need it for your project.
-
-#### What is Prettier?
-
-Prettier is an opinionated code formatter which is compatible with most of the languages. It saves a lot of time. It quickly indents our code on save (depends on VSCode/editor settings).
-
-```sh
-npm install prettier eslint --save-dev
-yarn add prettier eslint --dev
-
-npx eslint --init
-yarn run eslint --init
-```
-
-> Select JavaScript -> React -> TypeScript a .eslintrc will be created at the root of your application
-
-> Note: If you're using React v17, you can safely disable the rule in your eslint configuration file "rules": {
-> "react/react-in-jsx-scope": "off"
-> }
-
-Add plugin recommended
-
-```sh
-@typescript-eslint/eslint-plugin - Plugin to lint your ts code
-eslint-config-prettier – Turns off all rules that are unnecessary or might conflict with Prettier.
-eslint-plugin-prettier - Runs Prettier as an ESLint rule
-```
-
-```sh
-npm install @typescript-eslint/eslint-plugin eslint-config-prettier eslint-plugin-prettier prettier --save-dev
-or
-yarn add @typescript-eslint/eslint-plugin eslint-config-prettier eslint-plugin-prettier prettier --dev
-```
-
-Edit file `.eslintrc` add extends section & with eslint config I'll use the rule recommended from eslint https://github.com/eslint/eslint/blob/main/conf/eslint-recommended.js
-
-```json
-  "extends": [
-    "eslint:recommended",
-    "plugin:@typescript-eslint/recommended",
-    "plugin:react/recommended",
-    "plugin:prettier/recommended"
-  ],
-```
-
-Create `.prettierrc` and paste the below code
-
-```json
-{
-  "printWidth": 120,
-  "tabWidth": 2,
-  "useTabs": false,
-  "semi": true,
-  "singleQuote": true,
-  "quoteProps": "as-needed",
-  "jsxSingleQuote": true,
-  "trailingComma": "all",
-  "bracketSpacing": false,
-  "arrowParens": "always"
-}
-```
-
-After run eslint to check your code base you will catch the two kinds of erros
 
 ```js
-1. Parsing error: 'import' and 'export' may appear only with 'sourceType: module'
-2. Parsing error: Unexpected token module
+yield apply(obj, obj.method, [arg1, arg2, ...])
+call and apply are well suited for functions that return Promise results. Another function cps can be used to handle Node style functions (e.g. fn(...args, callback) where callback is of the form (error, result) => ()). cps stands for Continuation Passing Style.
 ```
 
-The problems are we try to run the eslint on the ts file and the eslint don't know what exactly what is need to clarify here
-the ts file need to parse itself to to js file and the eslint can clarify it so we need add a parser options to eslint can understand what should it do
-We will add a parser to eslint config : @typescript-eslint/parser https://www.npmjs.com/package/@typescript-eslint/parser
-
-```sh
-npm i --save-dev typescript @typescript-eslint/parser
-yarn add -D typescript @typescript-eslint/parser
-```
-
-An ESLint parser which leverages TypeScript ESTree to allow for ESLint to lint TypeScript source code.
-
-```json
-{
-  "parser": "@typescript-eslint/parser",
-  "parserOptions": {
-    "ecmaFeatures": {
-      "jsx": true
-    },
-    "project": "./tsconfig.json",
-    "sourceType": "module"
-  },
-  ...
-}
-```
-
-#### Another eslint recommended from external sources
-
-https://reactjs.org/docs/hooks-rules.html#eslint-plugin
-
-- ```sh
-   npm install eslint-plugin-react-hooks --save-dev
-   yarn add eslint-plugin-react-hooks -D
-  ```
-  ```json
-  // Your ESLint configuration
-  {
-    "plugins": ["react-hooks"],
-    "rules": {
-      "react-hooks/rules-of-hooks": "error", // Checks rules of Hooks
-      "react-hooks/exhaustive-deps": "warn" // Checks effect dependencies
-    }
-  }
-  ```
-
-### Step 4: Setup and running tests & coverage
-
-Create React App uses Jest as its test runner. To prepare for this integration, we did a major revamp of Jest so if you heard bad things about it years ago, give it another try.
-
-Filename Conventions
-Jest will look for test files with any of the following popular naming conventions:
+#### Dispatching actions to the store
+> The library provides, for this purpose, another function `put` which creates the dispatch Effect.
 
 ```js
-Files with .js suffix in __tests__ folders.
-Files with .test.js suffix.
-Files with .spec.js suffix.
-```
+import { call, put } from 'redux-saga/effects'
+// ...
 
-From React team (https://reactjs.org/docs/testing.html) recommended tool is React Testing library
-
-**Jest** is a JavaScript test runner that lets you access the DOM via jsdom. While jsdom is only an approximation of how the browser works, it is often good enough for testing React components. Jest provides a great iteration speed combined with powerful features like mocking modules and timers so you can have more control over how the code executes.
-https://jestjs.io/docs/getting-started
-
-**React Testing Library** is a set of helpers that let you test React components without relying on their implementation details. This approach makes refactoring a breeze and also nudges you towards best practices for accessibility. Although it doesn’t provide a way to “shallowly” render a component without its children, a test runner like Jest lets you do this by mocking.
-https://github.com/testing-library/react-testing-library
-
-Docs : https://testing-library.com/docs/react-testing-library/intro/
-Best practices for this lib : https://kentcdodds.com/blog/common-mistakes-with-react-testing-library
-
-Add React testing libs to project's devDependencies:
-
-```sh
-npm install --save-dev @testing-library/react @testing-library/react @testing-library/user-event
-yarn add --dev @testing-library/react @testing-library/react @testing-library/user-event
-```
-
-#### Initializing Test Environment
-
-If your app uses a browser API that you need to mock in your tests or if you need a global setup before running your tests, add a `src/setupTests.ts` to your project. It will be automatically executed before running your tests.
-
-```ts
-// jest-dom adds custom jest matchers for asserting on DOM nodes.
-// allows you to do things like:
-// expect(element).toHaveTextContent(/react/i)
-// learn more: https://github.com/testing-library/jest-dom
-import '@testing-library/jest-dom';
-
-const localStorageMock = {
-  getItem: jest.fn(),
-  setItem: jest.fn(),
-  removeItem: jest.fn(),
-  clear: jest.fn(),
-};
-global.localStorage = localStorageMock;
-```
-
-#### Add Jest collectCoverageFrom options in the package.json
-
-```json
-  "scripts": {
-      ...
-      "test": "react-scripts test",
-      "coverage": "npm test -- --coverage --watchAll=false",
-      ...
-  }
-  "jest": {
-    "collectCoverageFrom": [
-      "src/**/*.{js,jsx,ts,tsx}",
-      "!<rootDir>/node_modules/",
-      "!src/index.tsx",
-      "!src/reportWebVitals.ts",
-      "!src/serviceWorker.ts",
-      "!src/serviceWorkerRegistration.ts"
-    ]
-  },
-```
-
-#### Eslint for Jest & React Testing Library
-
-The current the eslint will notify errors warning related to jest test E.g
-
-> ESLint: 'test' is not defined.(no-undef)
-> ESLint: 'expect' is not defined.(no-undef)
-
-The problem the eslint don't know what is the `test` & `expect` key work come from. We need add a plugin to resolve this problem
-`eslint-plugin-jest`: https://github.com/jest-community/eslint-plugin-jest
-
-```sh
-npm install --save-dev eslint-plugin-jest
-yarn add --dev eslint-plugin-jest
-```
-
-Open `.eslintrc` and add `jest` to the plugins list
-
-```sh
-{
-  "plugins": ["jest"]
+function* fetchProducts() {
+  const products = yield call(Api.fetch, '/products')
+  // create and yield a dispatch Effect
+  yield put({ type: 'PRODUCTS_RECEIVED', products })
 }
 ```
+List common effects
 
-You can also tell ESLint about the environment variables provided by Jest by doing
-This is included in all configs shared by this plugin, so can be omitted if extending them.
+1. Handle concurrency
+ - `take` : It'll suspend the Generator until a matching `action is dispatched` and catch it and execute your logic 
+ - `call`: Suspends the Generator until a Promise resolves
+  >  call is a blocking Effect the Generator can't perform/handle anything else until the call terminates
+- `takeEvery`: Allows multiple `saga tasks` to be forked concurrently.
+    > takeEvery('*') (with the wildcard * pattern), we can catch all dispatched actions regardless of their types.
+ - `takeLatest`: Doesn't allow multiple Saga tasks to be fired concurrently. As soon as it gets a new dispatched action, it cancels any previously-forked task (if still running). takeLatest can be useful to handle AJAX requests where we want to only have the response to the latest request.
+ - `fork` : is used to create attached fork tasks that execute in the background and `fork` effects are non blocking
+ - `all` : execute parallel Effects, executing tasks in parallel The parent will terminate after all launched tasks terminate
+    > Note : `all` & `fork` for attached forks, a Saga aborts as soon as main body of instructions throws an error An uncaught error was raised by one of its attached forks
+ - `cancel`: cancel a previously `forked task`.
+ - `cancelled`: Force to cancel in a special way 
+ - `race`: triggering a race between multiple Effects.
+Rules :
+- You can't catch errors from forked tasks (E.g fork task failed the try/catch block can catch that error) A failure in an attached fork will cause the forking parent to abort (Just like there is no way to catch an error inside a parallel Effect, only from outside by blocking on the parallel Effect).
+
+Advanced Options:
+1. `Pull model`: write our flow in the same place instead of handling the same action repeatedly. 
+2. `Non-blocking calls`: `fork` is non-blocking effect it means when it called, it will be return immediately and go to the next action.
+3. `Note` Wait for specific actions in the store using the take Effect. We can make asynchronous calls using the call Effect. Finally, we can dispatch actions to the store using the put Effect.
+
 
 ```sh
-{
-  "env": {
-    "jest/globals": true
+npm install redux @reduxjs/toolkit redux-saga react-redux redux-injectors redux-logger 
+yarn add redux @reduxjs/toolkit redux-saga react-redux redux-injectors redux-logger 
+```
+
+#### There are several reasons why you must not mutate state in Redux:
+
+1. It causes bugs, such as the UI not updating properly to show the latest values
+2. It makes it harder to understand why and how the state has been updated
+3. It makes it harder to write tests
+4. It breaks the ability to use "time-travel debugging" correctly
+5. It goes against the intended spirit and usage patterns for Redux
+
+> That's why Redux Toolkit's createSlice function lets you write immutable updates an easier way!
+> createSlice uses a library called `Immer` inside. Immer uses a special JS tool called a `Proxy` to wrap the data you provide, and lets you write code that "mutates" that wrapped data. But, Immer tracks all the changes you've tried to make, and then uses that list of changes to return a safely immutably updated value, as if you'd written all the immutable update logic by hand.
+
+`So, instead of this:`
+```js
+function reducer1(state, action) {
+  return {
+    ...state,
+    newValue: {}
+  }
+}
+```
+`You can write code that looks like this:`
+```js
+function reducer1(state, action) {
+  state.newValue = {}
+}
+
+function reducer2(state, action) {
+  const { id, title, content } = action.payload
+  const existingPost = state.find(post => post.id === id)
+  if (existingPost) {
+    existingPost.title = title
+    existingPost.content = content
   }
 }
 ```
 
-Recommended
-This plugin exports a recommended configuration that enforces good testing practices.
-To enable this configuration use the extends property in your .eslintrc config file:
+> You can only write "mutating" logic in Redux Toolkit's `createSlice` and `createReducer` because they `use Immer inside!` If you write mutating logic in reducers without Immer, it will mutate the state and cause bugs!
+Learn more : https://redux.js.org/usage/structuring-reducers/immutable-update-patterns
 
-```json
-{
-  "extends": ["plugin:jest/recommended"]
+
+Question 
+```scss
+We've seen that our components can use the useSelector and useDispatch hooks to talk to the Redux store. But, since we didn't import the store, how do those hooks know what Redux store to talk to?
+```
+
+Answer is:
+> React components that call useSelector or useDispatch will be talking to the Redux store we gave to the <Provider>.
+
+```js
+<Provider store={store}>
+  <App />
+</Provider>
+```
+
+> the component will re-render any time the value returned from useSelector changes to a new reference select the smallest possible amount of data they need from the store, which will help ensure that it only renders when it actually needs to.
+
+
+Question : Can Redux store an class instance?
+> Redux actions and state should only contain plain JS values like objects, arrays, and primitives. Don't put class instances, functions, or other non-serializable values into Redux!.
+
+Question : How to recieve action defined outside of our slice
+> The `extraReducers` option should be a function that receives a parameter called builder. The builder object provides methods that let us define additional case reducers that will run in response to actions defined outside of the slice. We'll use builder.addCase(actionCreator, reducer) to handle each of the actions dispatched
+
+
+Question : When the `useSelector` will be run?
+> useSelector will re-run every time an action is dispatched, and that it forces the component to re-render if we return a new reference value. useSelector and mapState rely on === reference equality checks of the return values to determine if the component needs to re-render. If a selector always returns new references, it will force the component to re-render even if the derived data is effectively the same as last time. This is especially common with array operations like map() and filter(), which return new array references.
+E.g you have a selector below
+```js
+const posts = useSelector(state => {
+  const allPosts = selectAllPosts(state)
+  return allPosts.filter(post => post.user === userId)
+})
+
+And in your app, you have a dispatch action like xyz action and this action don't have any related to this useSelector.
+However the useSelector still triggered 
+```
+> We're calling filter() inside of our useSelector hook, so that we only return the list of posts that belong to this user. Unfortunately, `this means that useSelector always returns a new array reference, and so our component will re-render after every action even if the posts data hasn't changed!`.
+
+> `Reselect` is a library for creating memoized selector functions, and was specifically designed to be used with Redux. It has a createSelector function that generates memoized selectors that will only recalculate results when the inputs change. Redux Toolkit exports the createSelector function, so we already have it available.
+
+More detail : https://redux.js.org/usage/deriving-data-selectors
+
+Question : Can we pass parameter to the selector?
+> Yes https://redux.js.org/usage/deriving-data-selectors#createselector-behavior
+Another in case you use `react-redux`
+> It's common to want to pass additional arguments to a selector function. However, useSelector always calls the provided selector function with one argument - the Redux root state.
+https://redux.js.org/usage/deriving-data-selectors#calling-selectors-with-parameters
+> 
+
+Question : How to create an Unique Selector Instances
+> here are many cases where a selector function needs to be reused across multiple components. If the components will all be calling the selector with different arguments, it will break memoization - the selector never sees the same arguments multiple times in a row, and thus can never return a cached value.
+The standard approach here is to create a unique instance of a memoized selector in the component, and then use that with useSelector. That allows each component to consistently pass the same arguments to its own selector instance, and that selector can correctly memoize the results.
+For function components, this is normally done with useMemo or useCallback:
+More Detail : https://redux.js.org/usage/deriving-data-selectors#creating-unique-selector-instances
+
+
+Question : What happen when a `createSelector` function used in multiple places?
+> `createSelector` only has a default `cache size of 1`, and this is per each unique instance of a selector. This creates problems when a single selector function needs to get reused in multiple places with differing inputs.
+More detail: https://redux.js.org/usage/deriving-data-selectors#selector-factories
+
+Question : what is middleware in redux
+> Redux middleware provides a third-party extension point between dispatching an action, and the moment it reaches the reducer.
+
+Question : Redux expects that all state updates are done immutably
+`Immutability` "Mutable" means "changeable". If something is "immutable", it can never be changed.
+> JavaScript objects and arrays are all mutable by default. If I create an object, I can change the contents of its fields. If I create an array, I can change the contents as well
+
+> This is called mutating the object or array. It's the same object or array reference in memory, but now the contents inside the object have changed.
+In order to update values immutably, your code must make copies of existing objects/arrays, and then modify the copies.
+
+
+Rule : 
+>  we recommend prefixing selector function names with the word select combined with a description of the value being selected.
+
+
+How to use Selectors more Effectively
+https://redux.js.org/usage/deriving-data-selectors#using-selectors-effectively
+
+1. Define Selectors Alongside Reducers : https://redux.js.org/usage/deriving-data-selectors#define-selectors-alongside-reducers
+2. Balance Selector Usage
+ - don't make every single selector memoized!
+ - Memoization is only needed if you are truly deriving results, and if the derived results would likely create new references every time
+ - A selector function that does a direct lookup and return of a value should be a plain function, not memoized.
+
+```js
+// ❌ DO NOT memoize: will always return a consistent reference
+const selectTodos = state => state.todos
+const selectNestedValue = state => state.some.deeply.nested.field
+const selectTodoById = (state, todoId) => state.todos[todoId]
+
+// ❌ DO NOT memoize: deriving data, but will return a consistent result
+const selectItemsTotal = state => {
+  return state.items.reduce((result, item) => {
+    return result + item.total
+  }, 0)
 }
+const selectAllCompleted = state => state.todos.every(todo => todo.completed)
+
+// ✅ SHOULD memoize: returns new references when called
+const selectTodoDescriptions = state => state.todos.map(todo => todo.text)
 ```
 
-`eslint-plugin-testing-library` is an ESLint plugin for Testing Library that helps
-users to follow best practices and anticipate common mistakes when writing tests.
+3. Reshape State as Needed for Components : https://redux.js.org/usage/deriving-data-selectors#reshape-state-as-needed-for-components
+> A Redux state often has data in a "raw" form, because the state should be kept minimal, and many components may need to present the same data differently. You can use selectors to not only extract state, but to reshape it as needed for this specific component's needs
+4. Globalize Selectors if Needed : https://redux.js.org/usage/deriving-data-selectors#globalize-selectors-if-needed
+   https://redux.js.org/usage/deriving-data-selectors#globalize-selectors-if-needed
 
-```json
-npm install --save-dev eslint-plugin-testing-library
-yarn add --dev eslint-plugin-testing-library
-```
 
-Open `.eslintrc` and add `testing-library` to the plugins list
+Setup Project
 
-```sh
-{
-  "plugins": ["testing-library"]
-}
-```
 
-### Step 5: Setup Style SCSS & Stylelint
 
-Because we are using create-react-app, just add sass as a dev dependency.
+1. `redux` && `@reduxjs/toolkit` : Redux Core and toolkit and the toolkit is Redux team official recommended approach for writing Redux logic
+   Components  It wraps around the Redux core, and contains packages and functions that we think are essential for building a Redux app
+2. `react-redux` : package that lets your React components interact with a Redux store by reading pieces of state and dispatching actions to update the store.
 
-```sh
-yarn add -D sass
-npm install --save-dev sass
-```
+`redux-injectors`: https://www.npmjs.com/package/redux-injectors
+> Dynamically load redux reducers and redux-saga sagas as needed, instead of loading them all upfront. This has some nice benefits, such as avoiding having to manage a big global list of reducers and sagas. It also allows more effective use of code-splitting.
 
-> LibSass and Node Sass are deprecated. While they will continue to receive maintenance releases indefinitely, there are no plans to add additional features or compatibility with any new CSS or Sass features. Projects that still use it should move onto Dart Sass.
-
-Then just replace/rename all CSS files and corresponding imports to _.scss instead of _.css
-
-#### Setup stylelint https://github.com/stylelint/stylelint
-
-> Stylelint is designed for CSS.
-> However, it can be used with PostCSS syntaxes that:
-> parse CSS-like languages like SCSS, Less and SugarSS
-> extract styles from HTML, JavaScript and Markdown
-
-#### Linting CSS
-
-```sh
-npm install --save-dev stylelint stylelint-config-standard
-yarn add -D stylelint stylelint-config-standard
-```
-
-#### Linting SCSS
-
-```sh
-npm install --save-dev stylelint stylelint-config-standard-scss postcss@8
-yarn add -D stylelint stylelint stylelint-config-standard-scss postcss@8
-```
-
-> Note: postcss@8 dependency required https://github.com/stylelint-scss/stylelint-config-standard-scss/issues/5
-
-Create `.stylelintrc.json` file at the root folder
-
-```json
-{
-  "extends": "stylelint-config-standard-scss",
-  "rules": {
-    "max-line-length": 120,
-    "no-empty-source": null,
-    "indentation": 2,
-    "at-rule-no-unknown": null,
-    "scss/at-rule-no-unknown": true
-  }
-}
-```
-
-Add new script `style-lint` to `package.json` scripts.
-
-```json
-"style-lint": "stylelint --config=.stylelintrc.json \"src/**/*.scss\" --formatter verbose",
-```
-
-### Step 6: Set Up Git hooks with husky and lint-staged
-
-Helpful npm Packages
-We will rely on a couple of npm packages that will help us set up git hooks.
-
-The first package is Husky which lets you tie an npm script or CLI command to a git hook in your package.json file. We will only be looking at implementing a pre-commit and pre-push hook, although Husky does support all the git hooks defined in the git documentation.
-
-The second package is lint-staged that you can use to run linting against staged git files only. It’s helpful to run git hooks only on files that you have changed and are trying to commit or push. Running git hooks on all files in a large codebase would be prohibitively slow.
-
-Installing Packages
-
-```sh
-npm install husky lint-staged --save-dev
-yarn add -D husky lint-staged
-```
-
-Show now we have 5 items need to config together
-
-- husky — for using git hooks.
-- lint-staged — for running the command before committing .
-- prettier — for formatting the code.
-- eslint - for checking typescript codebase
-- stylelint - for checking style (css, scss) files
-
-All script related below :
-
-```sh
-{
-  "style-lint": "stylelint --config=.stylelintrc.json \"src/**/*.scss\" --formatter verbose",
-  "lint": "eslint --max-warnings=0 --fix --ext .ts,.tsx .",
-  "format": "prettier --write './**/*.{js,jsx,ts,tsx,css,md,json}' --config ./.prettierrc"
-}
-```
-
-Open the `package.json` and add the `lint-staged` config
-
-```json
-{
-  "lint-staged": {
-    "src/**/*.{ts,tsx}": ["npm run format", "npm run lint"],
-    "src/**/*.scss": "npm run style-lint"
-  }
-}
-```
-
-clarify the husky & link-staged running
-
-```sh
-git add .
-git commit -m "commit with husky and lint-staged"
-
-$ /.bin/lint-staged
-✔ Preparing...
-✔ Running tasks...
-✔ Applying modifications...
-✔ Cleaning up...
-✨  Done in 5.89s.
-```
-
-Enable gi hook & add pre-commit hook
-
-```sh
-npx husky install
-npx husky add .husky/pre-commit "yarn lint-staged"
-```
-
-So you can see at the root of folder a new folder `.husky` created
-
-```sh
-.husky
--- _
-    -- .gitignore
-    -- husky.sh
--- pre-commit
-```
-
-Content of `pre-commit` file
-
-```sh
-#!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
-
-yarn lint-staged
-```
-
+> Redux Toolkit already includes several of the packages we're using, like redux, redux-thunk, and reselect, and re-exports those APIs. So, we can clean up our project a bit.
