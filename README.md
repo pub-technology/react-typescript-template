@@ -2,158 +2,8 @@ Add Redux-Saga in your React TypeScript Project
 
 In this article, I will guide you how to implement it to personal project so what is redux-saga?
 
+![1_QERgzuzphdQz4e0fNs1CFQ](https://user-images.githubusercontent.com/18282144/147846059-f81639be-75da-4897-958a-c456a92b6a91.gif)
 
-```sh
-npm install redux @reduxjs/toolkit redux-saga react-redux redux-injectors redux-logger 
-yarn add redux @reduxjs/toolkit redux-saga react-redux redux-injectors redux-logger 
-```
-
-#### There are several reasons why you must not mutate state in Redux:
-
-1. It causes bugs, such as the UI not updating properly to show the latest values
-2. It makes it harder to understand why and how the state has been updated
-3. It makes it harder to write tests
-4. It breaks the ability to use "time-travel debugging" correctly
-5. It goes against the intended spirit and usage patterns for Redux
-
-> That's why Redux Toolkit's createSlice function lets you write immutable updates an easier way!
-> createSlice uses a library called `Immer` inside. Immer uses a special JS tool called a `Proxy` to wrap the data you provide, and lets you write code that "mutates" that wrapped data. But, Immer tracks all the changes you've tried to make, and then uses that list of changes to return a safely immutably updated value, as if you'd written all the immutable update logic by hand.
-
-`So, instead of this:`
-```js
-function reducer1(state, action) {
-  return {
-    ...state,
-    newValue: {}
-  }
-}
-```
-`You can write code that looks like this:`
-```js
-function reducer1(state, action) {
-  state.newValue = {}
-}
-
-function reducer2(state, action) {
-  const { id, title, content } = action.payload
-  const existingPost = state.find(post => post.id === id)
-  if (existingPost) {
-    existingPost.title = title
-    existingPost.content = content
-  }
-}
-```
-
-> You can only write "mutating" logic in Redux Toolkit's `createSlice` and `createReducer` because they `use Immer inside!` If you write mutating logic in reducers without Immer, it will mutate the state and cause bugs!
-Learn more : https://redux.js.org/usage/structuring-reducers/immutable-update-patterns
-
-
-Question 
-```scss
-We've seen that our components can use the useSelector and useDispatch hooks to talk to the Redux store. But, since we didn't import the store, how do those hooks know what Redux store to talk to?
-```
-
-Answer is:
-> React components that call useSelector or useDispatch will be talking to the Redux store we gave to the <Provider>.
-
-```js
-<Provider store={store}>
-  <App />
-</Provider>
-```
-
-> the component will re-render any time the value returned from useSelector changes to a new reference select the smallest possible amount of data they need from the store, which will help ensure that it only renders when it actually needs to.
-
-
-Question : Can Redux store an class instance?
-> Redux actions and state should only contain plain JS values like objects, arrays, and primitives. Don't put class instances, functions, or other non-serializable values into Redux!.
-
-Question : How to recieve action defined outside of our slice
-> The `extraReducers` option should be a function that receives a parameter called builder. The builder object provides methods that let us define additional case reducers that will run in response to actions defined outside of the slice. We'll use builder.addCase(actionCreator, reducer) to handle each of the actions dispatched
-
-
-Question : When the `useSelector` will be run?
-> useSelector will re-run every time an action is dispatched, and that it forces the component to re-render if we return a new reference value. useSelector and mapState rely on === reference equality checks of the return values to determine if the component needs to re-render. If a selector always returns new references, it will force the component to re-render even if the derived data is effectively the same as last time. This is especially common with array operations like map() and filter(), which return new array references.
-E.g you have a selector below
-```js
-const posts = useSelector(state => {
-  const allPosts = selectAllPosts(state)
-  return allPosts.filter(post => post.user === userId)
-})
-
-And in your app, you have a dispatch action like xyz action and this action don't have any related to this useSelector.
-However the useSelector still triggered 
-```
-> We're calling filter() inside of our useSelector hook, so that we only return the list of posts that belong to this user. Unfortunately, `this means that useSelector always returns a new array reference, and so our component will re-render after every action even if the posts data hasn't changed!`.
-
-> `Reselect` is a library for creating memoized selector functions, and was specifically designed to be used with Redux. It has a createSelector function that generates memoized selectors that will only recalculate results when the inputs change. Redux Toolkit exports the createSelector function, so we already have it available.
-
-More detail : https://redux.js.org/usage/deriving-data-selectors
-
-Question : Can we pass parameter to the selector?
-> Yes https://redux.js.org/usage/deriving-data-selectors#createselector-behavior
-Another in case you use `react-redux`
-> It's common to want to pass additional arguments to a selector function. However, useSelector always calls the provided selector function with one argument - the Redux root state.
-https://redux.js.org/usage/deriving-data-selectors#calling-selectors-with-parameters
-> 
-
-Question : How to create an Unique Selector Instances
-> here are many cases where a selector function needs to be reused across multiple components. If the components will all be calling the selector with different arguments, it will break memoization - the selector never sees the same arguments multiple times in a row, and thus can never return a cached value.
-The standard approach here is to create a unique instance of a memoized selector in the component, and then use that with useSelector. That allows each component to consistently pass the same arguments to its own selector instance, and that selector can correctly memoize the results.
-For function components, this is normally done with useMemo or useCallback:
-More Detail : https://redux.js.org/usage/deriving-data-selectors#creating-unique-selector-instances
-
-
-Question : What happen when a `createSelector` function used in multiple places?
-> `createSelector` only has a default `cache size of 1`, and this is per each unique instance of a selector. This creates problems when a single selector function needs to get reused in multiple places with differing inputs.
-More detail: https://redux.js.org/usage/deriving-data-selectors#selector-factories
-
-Question : what is middleware in redux
-> Redux middleware provides a third-party extension point between dispatching an action, and the moment it reaches the reducer.
-
-Question : Redux expects that all state updates are done immutably
-`Immutability` "Mutable" means "changeable". If something is "immutable", it can never be changed.
-> JavaScript objects and arrays are all mutable by default. If I create an object, I can change the contents of its fields. If I create an array, I can change the contents as well
-
-> This is called mutating the object or array. It's the same object or array reference in memory, but now the contents inside the object have changed.
-In order to update values immutably, your code must make copies of existing objects/arrays, and then modify the copies.
-
-
-Rule : 
->  we recommend prefixing selector function names with the word select combined with a description of the value being selected.
-
-
-How to use Selectors more Effectively
-https://redux.js.org/usage/deriving-data-selectors#using-selectors-effectively
-
-1. Define Selectors Alongside Reducers : https://redux.js.org/usage/deriving-data-selectors#define-selectors-alongside-reducers
-2. Balance Selector Usage
- - don't make every single selector memoized!
- - Memoization is only needed if you are truly deriving results, and if the derived results would likely create new references every time
- - A selector function that does a direct lookup and return of a value should be a plain function, not memoized.
-
-```js
-// ❌ DO NOT memoize: will always return a consistent reference
-const selectTodos = state => state.todos
-const selectNestedValue = state => state.some.deeply.nested.field
-const selectTodoById = (state, todoId) => state.todos[todoId]
-
-// ❌ DO NOT memoize: deriving data, but will return a consistent result
-const selectItemsTotal = state => {
-  return state.items.reduce((result, item) => {
-    return result + item.total
-  }, 0)
-}
-const selectAllCompleted = state => state.todos.every(todo => todo.completed)
-
-// ✅ SHOULD memoize: returns new references when called
-const selectTodoDescriptions = state => state.todos.map(todo => todo.text)
-```
-
-3. Reshape State as Needed for Components : https://redux.js.org/usage/deriving-data-selectors#reshape-state-as-needed-for-components
-> A Redux state often has data in a "raw" form, because the state should be kept minimal, and many components may need to present the same data differently. You can use selectors to not only extract state, but to reshape it as needed for this specific component's needs
-4. Globalize Selectors if Needed : https://redux.js.org/usage/deriving-data-selectors#globalize-selectors-if-needed
-   https://redux.js.org/usage/deriving-data-selectors#globalize-selectors-if-needed
 
    
 ### Step 1: Add the necessary packages to your app:
@@ -195,8 +45,8 @@ createSlice({
 4. `redux-injectors`: https://www.npmjs.com/package/redux-injectors
 > Dynamically load redux reducers and redux-saga sagas as needed, instead of loading them all upfront. This has some nice benefits, such as avoiding having to manage a big global list of reducers and sagas. It also allows more effective use of code-splitting.
 
+![download (3)](https://user-images.githubusercontent.com/18282144/147846129-26196a34-2032-41f2-9e07-354803426167.png)
 
-https://miro.medium.com/max/630/1*QERgzuzphdQz4e0fNs1CFQ.gif
 
 > Redux-Saga is a library that aims to make application side effects (i.e. asynchronous things like data fetching and impure things like accessing the browser cache) easier to manage, more efficient to execute, easy to test, and better at handling failures.
 
@@ -709,3 +559,153 @@ Login was run successfully !!!!
 
 Now, I think you got ideal how to implement a new feature and using redux saga in our application
 :)
+
+
+### Q & A Section
+
+#### There are several reasons why you must not mutate state in Redux:
+
+1. It causes bugs, such as the UI not updating properly to show the latest values
+2. It makes it harder to understand why and how the state has been updated
+3. It makes it harder to write tests
+4. It breaks the ability to use "time-travel debugging" correctly
+5. It goes against the intended spirit and usage patterns for Redux
+
+> That's why Redux Toolkit's createSlice function lets you write immutable updates an easier way!
+> createSlice uses a library called `Immer` inside. Immer uses a special JS tool called a `Proxy` to wrap the data you provide, and lets you write code that "mutates" that wrapped data. But, Immer tracks all the changes you've tried to make, and then uses that list of changes to return a safely immutably updated value, as if you'd written all the immutable update logic by hand.
+
+`So, instead of this:`
+```js
+function reducer1(state, action) {
+  return {
+    ...state,
+    newValue: {}
+  }
+}
+```
+`You can write code that looks like this:`
+```js
+function reducer1(state, action) {
+  state.newValue = {}
+}
+
+function reducer2(state, action) {
+  const { id, title, content } = action.payload
+  const existingPost = state.find(post => post.id === id)
+  if (existingPost) {
+    existingPost.title = title
+    existingPost.content = content
+  }
+}
+```
+
+> You can only write "mutating" logic in Redux Toolkit's `createSlice` and `createReducer` because they `use Immer inside!` If you write mutating logic in reducers without Immer, it will mutate the state and cause bugs!
+Learn more : https://redux.js.org/usage/structuring-reducers/immutable-update-patterns
+
+
+Question 
+```scss
+We've seen that our components can use the useSelector and useDispatch hooks to talk to the Redux store. But, since we didn't import the store, how do those hooks know what Redux store to talk to?
+```
+
+Answer is:
+> React components that call useSelector or useDispatch will be talking to the Redux store we gave to the <Provider>.
+
+```js
+<Provider store={store}>
+  <App />
+</Provider>
+```
+
+> the component will re-render any time the value returned from useSelector changes to a new reference select the smallest possible amount of data they need from the store, which will help ensure that it only renders when it actually needs to.
+
+
+Question : Can Redux store an class instance?
+> Redux actions and state should only contain plain JS values like objects, arrays, and primitives. Don't put class instances, functions, or other non-serializable values into Redux!.
+
+Question : How to recieve action defined outside of our slice
+> The `extraReducers` option should be a function that receives a parameter called builder. The builder object provides methods that let us define additional case reducers that will run in response to actions defined outside of the slice. We'll use builder.addCase(actionCreator, reducer) to handle each of the actions dispatched
+
+
+Question : When the `useSelector` will be run?
+> useSelector will re-run every time an action is dispatched, and that it forces the component to re-render if we return a new reference value. useSelector and mapState rely on === reference equality checks of the return values to determine if the component needs to re-render. If a selector always returns new references, it will force the component to re-render even if the derived data is effectively the same as last time. This is especially common with array operations like map() and filter(), which return new array references.
+E.g you have a selector below
+```js
+const posts = useSelector(state => {
+  const allPosts = selectAllPosts(state)
+  return allPosts.filter(post => post.user === userId)
+})
+
+And in your app, you have a dispatch action like xyz action and this action don't have any related to this useSelector.
+However the useSelector still triggered 
+```
+> We're calling filter() inside of our useSelector hook, so that we only return the list of posts that belong to this user. Unfortunately, `this means that useSelector always returns a new array reference, and so our component will re-render after every action even if the posts data hasn't changed!`.
+
+> `Reselect` is a library for creating memoized selector functions, and was specifically designed to be used with Redux. It has a createSelector function that generates memoized selectors that will only recalculate results when the inputs change. Redux Toolkit exports the createSelector function, so we already have it available.
+
+More detail : https://redux.js.org/usage/deriving-data-selectors
+
+Question : Can we pass parameter to the selector?
+> Yes https://redux.js.org/usage/deriving-data-selectors#createselector-behavior
+Another in case you use `react-redux`
+> It's common to want to pass additional arguments to a selector function. However, useSelector always calls the provided selector function with one argument - the Redux root state.
+https://redux.js.org/usage/deriving-data-selectors#calling-selectors-with-parameters
+> 
+
+Question : How to create an Unique Selector Instances
+> here are many cases where a selector function needs to be reused across multiple components. If the components will all be calling the selector with different arguments, it will break memoization - the selector never sees the same arguments multiple times in a row, and thus can never return a cached value.
+The standard approach here is to create a unique instance of a memoized selector in the component, and then use that with useSelector. That allows each component to consistently pass the same arguments to its own selector instance, and that selector can correctly memoize the results.
+For function components, this is normally done with useMemo or useCallback:
+More Detail : https://redux.js.org/usage/deriving-data-selectors#creating-unique-selector-instances
+
+
+Question : What happen when a `createSelector` function used in multiple places?
+> `createSelector` only has a default `cache size of 1`, and this is per each unique instance of a selector. This creates problems when a single selector function needs to get reused in multiple places with differing inputs.
+More detail: https://redux.js.org/usage/deriving-data-selectors#selector-factories
+
+Question : what is middleware in redux
+> Redux middleware provides a third-party extension point between dispatching an action, and the moment it reaches the reducer.
+
+Question : Redux expects that all state updates are done immutably
+`Immutability` "Mutable" means "changeable". If something is "immutable", it can never be changed.
+> JavaScript objects and arrays are all mutable by default. If I create an object, I can change the contents of its fields. If I create an array, I can change the contents as well
+
+> This is called mutating the object or array. It's the same object or array reference in memory, but now the contents inside the object have changed.
+In order to update values immutably, your code must make copies of existing objects/arrays, and then modify the copies.
+
+
+Rule : 
+>  we recommend prefixing selector function names with the word select combined with a description of the value being selected.
+
+
+How to use Selectors more Effectively
+https://redux.js.org/usage/deriving-data-selectors#using-selectors-effectively
+
+1. Define Selectors Alongside Reducers : https://redux.js.org/usage/deriving-data-selectors#define-selectors-alongside-reducers
+2. Balance Selector Usage
+ - don't make every single selector memoized!
+ - Memoization is only needed if you are truly deriving results, and if the derived results would likely create new references every time
+ - A selector function that does a direct lookup and return of a value should be a plain function, not memoized.
+
+```js
+// ❌ DO NOT memoize: will always return a consistent reference
+const selectTodos = state => state.todos
+const selectNestedValue = state => state.some.deeply.nested.field
+const selectTodoById = (state, todoId) => state.todos[todoId]
+
+// ❌ DO NOT memoize: deriving data, but will return a consistent result
+const selectItemsTotal = state => {
+  return state.items.reduce((result, item) => {
+    return result + item.total
+  }, 0)
+}
+const selectAllCompleted = state => state.todos.every(todo => todo.completed)
+
+// ✅ SHOULD memoize: returns new references when called
+const selectTodoDescriptions = state => state.todos.map(todo => todo.text)
+```
+
+3. Reshape State as Needed for Components : https://redux.js.org/usage/deriving-data-selectors#reshape-state-as-needed-for-components
+> A Redux state often has data in a "raw" form, because the state should be kept minimal, and many components may need to present the same data differently. You can use selectors to not only extract state, but to reshape it as needed for this specific component's needs
+4. Globalize Selectors if Needed : https://redux.js.org/usage/deriving-data-selectors#globalize-selectors-if-needed
+   https://redux.js.org/usage/deriving-data-selectors#globalize-selectors-if-needed
