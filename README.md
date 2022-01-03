@@ -38,7 +38,7 @@ Add to your tsconfig.json:
 "extends": "@tsconfig/create-react-app/tsconfig.json"
 ```
 
-The default compilerOptions `12/2021`
+The default compilerOptions `01/2022`
 
 ```json5
 "compilerOptions": {
