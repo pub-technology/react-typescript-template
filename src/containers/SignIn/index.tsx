@@ -1,3 +1,4 @@
+import {ReactElement} from 'react';
 import {useInjectReducer, useInjectSaga} from 'utils/reduxInjectors';
 
 import './styles/index.scss';
@@ -5,7 +6,7 @@ import reducer, {sliceKey} from './slice';
 import useSignInHooks from './hooks';
 import saga from './saga';
 
-const SignIn = () => {
+const SignIn = (): ReactElement => {
   useInjectReducer({
     key: sliceKey,
     reducer,

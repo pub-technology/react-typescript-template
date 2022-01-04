@@ -562,6 +562,9 @@ Now, I think you got ideal how to implement a new feature and using redux saga i
 
 
 ### Q & A Section
+#### Question why you must return an immutable state in redux (reducer)
+Redux expects that your reducers will update their state “immutably” which effectively means always making copies of your data, and applying your changes to the copies
+If you return the same object from a reducer, Redux assumes that nothing has been changed, even if you made changes to its contents Similarly, React Redux tries to improve performance by doing shallow equality reference checks on incoming props in shouldComponentUpdate, and if all references are the same, shouldComponentUpdate returns false to skip actually updating your original component.
 
 #### There are several reasons why you must not mutate state in Redux:
 

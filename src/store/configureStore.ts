@@ -1,10 +1,10 @@
-import {configureStore, Middleware} from '@reduxjs/toolkit';
+import {configureStore, EnhancedStore, Middleware} from '@reduxjs/toolkit';
 import {createInjectorsEnhancer, forceReducerReload} from 'redux-injectors';
 import createSagaMiddleware from 'redux-saga';
 import logger from 'redux-logger';
 import {createReducer} from 'store/reducers';
 
-export const configureAppStore = (initialState = {}) => {
+export const configureAppStore = (initialState = {}): EnhancedStore => {
   const sagaMiddleware = createSagaMiddleware();
   const {run: runSaga} = sagaMiddleware;
 
@@ -19,7 +19,7 @@ export const configureAppStore = (initialState = {}) => {
   ];
 
   const initStore = configureStore({
-    reducer: createReducer(),
+    reducer: createReducer() as never,
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware()
         .prepend(

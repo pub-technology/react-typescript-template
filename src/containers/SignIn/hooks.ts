@@ -2,13 +2,34 @@ import {useState, useCallback, ChangeEvent, useEffect} from 'react';
 
 import {useSelector} from 'react-redux';
 
-import {useActions} from 'hooks/useActions';
+import useActions from 'store/hooks/useActions';
 import {signIn} from './slice';
 import {selectSignInStatus} from './selectors';
 
+export interface SignInHooksType {
+  states: {
+    username: string;
+    password: string;
+  };
+  handlers: {
+    onSubmitHandler: () => void;
+    onUsernameChange: (event: ChangeEvent<HTMLInputElement>) => void;
+    onPasswordChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  };
+}
+
+interface SignInPayLoadType {
+  username: string;
+  password: string;
+}
+
+export interface SignInActionsType {
+  signInAction: (payload: SignInPayLoadType) => void;
+}
+
 //To verify did user sign in or not ?
-const useSignInHooks = () => {
-  const {signInAction} = useActions(
+const useSignInHooks = (): SignInHooksType => {
+  const {signInAction} = useActions<SignInActionsType>(
     {
       signInAction: signIn,
     },

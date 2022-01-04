@@ -1,5 +1,5 @@
 import get from 'lodash/fp/get';
-import {createSelector} from 'reselect';
+import {createSelector} from '@reduxjs/toolkit';
 
 import {sliceKey, initialState} from './slice';
 import {RootState} from 'types/rootState';

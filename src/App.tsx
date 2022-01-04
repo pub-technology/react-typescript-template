@@ -1,8 +1,9 @@
+import {ReactElement} from 'react';
 import logo from './logo.svg';
 import './App.scss';
 import SignIn from './containers/SignIn';
 
-function App() {
+const App = (): ReactElement => {
   return (
     <div className='App'>
       <header className='App-header'>
@@ -18,6 +19,6 @@ function App() {
       <SignIn />
     </div>
   );
-}
+};
 
 export default App;

@@ -1,10 +1,10 @@
 import {SagaIterator} from 'redux-saga';
-import {all, call, fork, put, takeLatest} from 'redux-saga/effects';
+import {all, call, fork, put, takeLatest, AllEffect, ForkEffect, SagaReturnType} from 'redux-saga/effects';
 
 import {setUserInfo, signIn} from './slice';
 import {UserInfo, SignInActionPayloadType, SignInParamType} from './types';
 
-export default function* sagaWorker() {
+export default function* sagaWorker(): Generator<AllEffect<ForkEffect<SagaReturnType<() => SagaIterator>>>, void> {
   yield all([fork(signInWatcher)]);
 }
 
