@@ -1,19 +1,23 @@
-import logo from './logo.svg';
+import {Routes, Route} from 'react-router-dom';
+import HomePageView from 'views/homePage/HomePage.view';
+import LoginView from 'views/login/Login.view';
+
 import './App.scss';
+import {LoginRedirectRoute} from './views/login/LoginRedirectRoute';
 
 function App() {
   return (
-    <div className='App'>
-      <header className='App-header'>
-        <img src={logo} className='App-logo' alt='logo' />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload 2.
-        </p>
-        <a className='App-link' href='https://reactjs.org' target='_blank' rel='noopener noreferrer'>
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Routes>
+      <Route
+        path='/'
+        element={
+          <LoginRedirectRoute>
+            <HomePageView />
+          </LoginRedirectRoute>
+        }
+      />
+      <Route path='/login' element={<LoginView />} />
+    </Routes>
   );
 }
 
